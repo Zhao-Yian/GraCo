@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="description"
+        content="Granularity-Controllable Interactive Segmentation">
+  <meta name="keywords" content="Granularity, Controllable, Interactive Segmentation">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GraCo: Granularity-Controllable Interactive Segmentation</title>
+
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-PYVRSFMDRL"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+
+    function gtag() {
+      dataLayer.push(arguments);
+    }
+
+    gtag('js', new Date());
+
+    gtag('config', 'G-PYVRSFMDRL');
+  </script>
+
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro"
+        rel="stylesheet">
+
+  <link rel="stylesheet" href="./static/css/bulma.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-carousel.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-slider.min.css">
+  <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  <link rel="stylesheet" href="./static/css/index.css">
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script defer src="./static/js/fontawesome.all.min.js"></script>
+  <script src="./static/js/bulma-carousel.min.js"></script>
+  <script src="./static/js/bulma-slider.min.js"></script>
+  <script src="./static/js/index.js"></script>
+</head>
+<body>
+
+<section class="hero">
+  <div class="hero-body">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column has-text-centered">
+          <h1 class="title is-1 publication-title">GraCo: Granularity-Controllable Interactive Segmentation</h1>
+          <div class="is-size-3 publication-authors">
+            <span class="author-block" style="color:red">CVPR 2024</span>
+          </div>
+          <div class="is-size-5 publication-authors">
+            <span class="author-block">
+              Yian Zhao<sup>1,3</sup>,</span>
+            <span class="author-block">
+              Kehan Li<sup>1,3</sup>,</span>
+            <span class="author-block">
+              Zesen Cheng<sup>1,3</sup>,
+            </span>
+            <span class="author-block">
+              Pengchong Qiao<sup>1,2,3</sup>,
+            </span>
+            <span class="author-block">
+              Xiawu Zheng<sup>4</sup>,
+            </span>
+            <span class="author-block">
+              Rongrong Ji<sup>4</sup>,
+            </span>
+            <span class="author-block">
+              Chang Liu<sup>5</sup>
+            </span>
+            <span class="author-block">
+              Li Yuan<sup>1,2,3</sup>
+            </span>
+            <span class="author-block">
+              Jie Chen<sup>1,2,3*</sup>
+            </span>
+          </div>
+
+          <div class="is-size-5 publication-authors">
+            <span class="author-block"><sup>1</sup>School of ECE, Peking University</span>
+            <span class="author-block"><sup>2</sup>Peng Cheng Laboratory</span>
+            <span class="author-block"><sup>3</sup>AI for Science (AI4S)-Preferred Program, Peking University</span>
+            <span class="author-block"><sup>4</sup>Key Laboratory of Multimedia Trusted Perception and Efficient Computing, Xiamen University</span>
+            <span class="author-block"><sup>5</sup>Department of Automation and BNRist, Tsinghua University</span>
+          </div>
+          <div class="column has-text-centered">
+            <div class="publication-links">
+              <!-- PDF Link. -->
+              <span class="link-block">
+                <a href=""
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fas fa-file-pdf"></i>
+                  </span>
+                  <span>Paper</span>
+                </a>
+              </span>
+              <!-- Appendix Link. -->
+              <span class="link-block">
+                <a href=""
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="far fa-images"></i>
+                  </span>
+                  <span>Appendix</span>
+                </a>
+              </span>
+              <!-- Video Link. -->
+              <span class="link-block">
+                <a href="https://www.youtube.com/watch?v=MrKrnHhk8IA"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fab fa-youtube"></i>
+                  </span>
+                  <span>Video</span>
+                </a>
+              </span>
+              <!-- Code Link. -->
+              <span class="link-block">
+                <a href=""
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fab fa-github"></i>
+                  </span>
+                  <span>Code</span>
+                  </a>
+              </span>
+              <!-- Demo Link. -->
+              <span class="link-block">
+                <a href=""
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="ai ai-arxiv"></i>
+                  </span>
+                  <span>Demo</span>
+                  </a>
+              </span>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container is-max-desktop">
+    <!-- Abstract. -->
+    <div class="columns is-centered has-text-centered">
+      <div class="column">
+        <h2 class="title is-3">Abstract</h2>
+          <div>
+            <img width="500" src="./static/images/motivation.jpg"
+                 class="interpolation-image"
+                 alt="Interpolate motivation image."/>
+          </div>
+        <div class="content has-text-justified">
+          <p>
+            Interactive Segmentation (IS) segments specific objects or parts in the image according to user input.
+            Current IS pipelines fall into two categories: single-granularity output and multi-granularity output.
+            The latter aims to alleviate the spatial ambiguity present in the former.
+            However, the multi-granularity output pipeline suffers from limited interaction flexibility and produces redundant results.
+          </p>
+          <p>
+            In this work, we introduce <b>Gra</b>nularity-<b>Co</b>ntrollable Interactive Segmentation (<b>GraCo</b>),
+            a novel approach that allows precise control of prediction granularity by introducing additional parameters to input.
+            This enhances the customization of the interactive system and eliminates redundancy while resolving ambiguity.
+            Nevertheless, the exorbitant cost of annotating multi-granularity masks and the lack of available datasets with granularity annotations
+            make it difficult for models to acquire the necessary guidance to control output granularity.
+          </p>
+          <p>
+            To address this problem, we design an any-granularity mask generator that exploits the semantic property of
+            the pre-trained IS model to automatically generate abundant mask-granularity pairs without requiring additional manual annotation.
+            Based on these pairs, we propose a granularity-controllable learning strategy that efficiently imparts the granularity controllability to the IS model.
+            Extensive experiments on intricate scenarios at object and part levels demonstrate that our GraCo has significant advantages over previous methods.
+            This highlights the potential of GraCo to be a flexible annotation tool, capable of adapting to diverse segmentation scenarios.
+          </p>
+        </div>
+
+      </div>
+    </div>
+    <br />
+    <!--/ Overview. -->
+    <div class="columns is-centered has-text-centered">
+      <div class="column">
+          <h2 class="title is-3">Method</h2>
+          <div class="columns is-centered interpolation-panel">
+            <div class="column is-12">
+              <img height="500" src="./static/images/overview.jpg"
+                   class="interpolation-image"
+                   alt="Interpolate overview image."/>
+            </div>
+          </div>
+        <div class="content has-text-justified">
+          <p>
+            Our GraCo consists of two stages.
+            For the first stage, the Any-Granularity mask Generator (AGG) is designed to automatically generate any-granularity proposals (mask engine)
+            and granularity annotations (granularity estimator) based on the object GT, without requiring additional manual annotation.
+            For the second stage, the mask-granularity pairs generated by AGG are utilized to perform Granularity-Controllable Learning (GCL) on the object-level pre-trained IS model,
+            enabling the model to efficiently possesses granularity controllability.
+          </p>
+        </div>
+
+        <div class="columns is-centered interpolation-panel">
+            <div class="column is-12">
+            <img height="500" src="./static/images/loop.jpg"
+                 class="interpolation-image"
+                 alt="Interpolate loop image."/>
+          </div>
+        </div>
+        <div class="content has-text-justified">
+          <p>The multi-granularity loop simulation and visualization of the mask proposals generated by AGG.
+          </p>
+        </div>
+      </div>
+    </div>
+    <br />
+    <!-- Paper video. -->
+    <div class="columns is-centered has-text-centered">
+      <div class="column">
+        <h2 class="title is-3">Video</h2>
+        <div class="publication-video">
+          <iframe src="https://www.youtube.com/embed/MrKrnHhk8IA?rel=0&amp;showinfo=0"
+                  frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+        </div>
+      </div>
+    </div>
+    <!--/ Paper video. -->
+    <br />
+    <!--/ Overview. -->
+    <div class="columns is-centered has-text-centered">
+      <div class="column">
+        <h2 class="title is-3">Qualitative Results</h2>
+          <h3 class="title is-4">Part-level</h3>
+          <div class="columns is-centered interpolation-panel">
+            <div class="column is-12">
+            <img src="./static/images/part_level.jpg"
+                alt="Interpolate part_level image."/>
+            </div>
+          </div>
+        <br />
+          <div>
+            <h3 class="title is-4">Object-level</h3>
+            <div class="columns is-centered interpolation-panel">
+              <div class="column is-12">
+                <img height="500" src="./static/images/object_level.jpg"
+                     alt="Interpolate object_level image."/>
+              </div>
+          </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<!--<section class="section" id="BibTeX">-->
+<!--  <div class="container is-max-desktop content">-->
+<!--    <h2 class="title">BibTeX</h2>-->
+<!--    <pre><code>@article{park2021nerfies,-->
+<!--  author    = {Park, Keunhong and Sinha, Utkarsh and Barron, Jonathan T. and Bouaziz, Sofien and Goldman, Dan B and Seitz, Steven M. and Martin-Brualla, Ricardo},-->
+<!--  title     = {Nerfies: Deformable Neural Radiance Fields},-->
+<!--  journal   = {ICCV},-->
+<!--  year      = {2021},-->
+<!--}</code></pre>-->
+<!--  </div>-->
+<!--</section>-->
+
+
+<footer class="footer">
+  <div class="container">
+    <div class="columns is-centered">
+      <div class="column is-8">
+        <div class="content">
+          <p>
+            This website is licensed under a <a rel="license"
+                                                href="http://creativecommons.org/licenses/by-sa/4.0/">Creative
+            Commons Attribution-ShareAlike 4.0 International License</a>.
+          </p>
+          <p>
+            The source code is based on the <a href="https://nerfies.github.io/">Nerfies</a> project page. We thank the authors for creating and opening it.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
