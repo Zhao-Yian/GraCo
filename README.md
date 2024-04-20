@@ -9,7 +9,7 @@
     <a href="https://youtu.be/QE8Mi0k2nKg?si=yJXbYAzTG1qHF_uK">
     <img src="https://img.shields.io/badge/Video-FC2947.svg?logo=YouTube" style="display:inline;"></a>
     <img alt="GitHub Repo stars" src="https://img.shields.io/github/stars/Zhao-Yian/GraCo">
-    <a href="">
+    <a href="https://huggingface.co/spaces/zhaoyian01/GraCo">
     <img alt="Static Badge" src="https://img.shields.io/badge/Demo-buffer.svg?logo=buffer">
     </a>
     <a href="mailto: zhaoyian.zh@gmail.com">
