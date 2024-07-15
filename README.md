@@ -37,11 +37,6 @@ Based on these pairs, we propose a granularity-controllable learning strategy th
   <img src="./assets/motivation.jpg" width=500 >
 </div>
 
-## TODO
-
-- Release code 
-- Upload pre-trained weight
-
 ## 🚀 Quick start
 
 ### 📍 Install
