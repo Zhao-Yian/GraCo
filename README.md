@@ -40,8 +40,16 @@ Based on these pairs, we propose a granularity-controllable learning strategy th
 ## 🚀 Quick start
 
 ### 📍 Install
+- Install [torch](https://pytorch.org/get-started/previous-versions/)
+```bash
+# Install torch (according to your own cuda version, take 11.8 as an example)
+pip install torch==2.0.1 torchvision==0.15.2 torchaudio==2.0.2 --index-url https://download.pytorch.org/whl/cu118
+```
+
+- Install other dependencies
 
 ```bash
+# Install other dependencies
 pip install -r requirements.txt
 ```
 

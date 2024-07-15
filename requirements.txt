@@ -1,0 +1,14 @@
+matplotlib==3.3.4
+setuptools==52.0.0
+albumentations==0.5.2
+PyYAML==6.0
+loralib==0.1.2
+easydict==1.9
+tensorboard==2.8.0
+albumentations==0.5.2
+mmcv==1.6.2
+timm==0.6.11
+Cython==0.29.32
+opencv-python-headless==4.8.1.78
+protobuf==3.20.0
+pycocotools
