@@ -1,0 +1,37 @@
+INTERACTIVE_MODELS_PATH: "./weights"
+EXPS_PATH: "./outputs"
+
+# Evaluation datasets
+GRABCUT_PATH: "/root/share/zhaoyian/datasets/GrabCut"
+BERKELEY_PATH: "/root/share/zhaoyian/datasets/Berkeley"
+DAVIS_PATH: "/root/share/zhaoyian/datasets/DAVIS"
+PARTIMAGENET_PATH: "/root/share/zhaoyian/datasets/PartImageNet"
+SA1B_PATH: "/root/share/zhaoyian/datasets/SAM"
+PASCALPART_PATH: "/root/share/zhaoyian/datasets/VOCdevkit/VOC2010"
+
+# Train datasets
+SBD_PATH: "/root/share/zhaoyian/datasets/SBD/dataset"
+
+# You can download the weights for HRNet from the repository:
+# https://github.com/HRNet/HRNet-Image-Classification
+IMAGENET_PRETRAINED_MODELS:
+  HRNETV2_W18: "./weights/pretrained/hrnetv2_w18_imagenet_pretrained.pth"
+  HRNETV2_W32: "./weights/pretrained/hrnetv2_w32_imagenet_pretrained.pth"
+  HRNETV2_W40: "./weights/pretrained/hrnetv2_w40_imagenet_pretrained.pth"
+  HRNETV2_W48: "./weights/pretrained/hrnetv2_w48_imagenet_pretrained.pth"
+  HRNETV2_W64: "./weights/pretrained/hrnetv2_w64_imagenet_pretrained.pth"
+  MIT_B5: "./weights/pretrained/mit_b5_converted.pth"
+  MIT_B4: "./weights/pretrained/mit_b4_converted.pth"
+  MIT_B3: "./weights/pretrained/mit_b3_converted.pth"
+  MIT_B2: "./weights/pretrained/mit_b2_converted.pth"
+  MIT_B1: "./weights/pretrained/mit_b1_converted.pth"
+  MIT_B0: "./weights/pretrained/mit_b0_converted.pth"
+  HRF_BASE: "./weights/pretrained/hrt_base.pth"
+  SWIN_BASE: "./weights/pretrained/swin_base_patch4_window12_384_22k.pth"
+  SWIN_LARGE: "./weights/pretrained/swin_large_patch4_window12_384_22k.pth"
+  MAE_BASE: "./weights/pretrained/mae_pretrain_vit_base.pth"
+  MAE_LARGE: "./weights/pretrained/mae_pretrain_vit_large.pth"
+  MAE_HUGE: "./weights/pretrained/mae_pretrain_vit_huge.pth"
+  MAE_BASE_URL: "https://dl.fbaipublicfiles.com/mae/pretrain/mae_pretrain_vit_base.pth"
+  MAE_LARGE_URL: "https://dl.fbaipublicfiles.com/mae/pretrain/mae_pretrain_vit_large.pth"
+  MAE_HUGE_URL: "https://dl.fbaipublicfiles.com/mae/pretrain/mae_pretrain_vit_huge.pth"

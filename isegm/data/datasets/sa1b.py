@@ -1,0 +1,113 @@
+"""
+Written by Yian Zhao
+"""
+
+from pycocotools import mask as maskUtils
+import os
+import numpy as np
+import os, json, cv2
+import numpy as np
+from isegm.data.base import ISDataset
+from isegm.data.sample import DSample
+import pickle as pkl
+from pathlib import Path
+import random
+import tqdm
+
+
+def load_sample(root, id, annotation_dir='annotations',image_dir='images'):
+    img = os.path.join(root,image_dir,id+".jpg") 
+    annotation  = os.path.join(root,annotation_dir,id+".json") 
+    return (img,annotation)
+
+class SA1BDataset(ISDataset):
+    """A class to load SA-1B: https://segment-anything.com/dataset/index.html
+    
+    Attributes:
+        min_object (int): The minimum number of pixels required for an object to be considered valid.
+        samples (list): A list of loaded samples from the dataset.
+        image_info (list): A list containing image information for each sample.
+
+    """
+    def __init__(self, dataset_dir, ids=None, annotation_dir='annotations', image_dir='images', min_object=1, **kwargs):
+        """Initializes SA1BDataset class.
+        
+        Args:
+            dataset_dir (str): The directory containing the dataset.
+            ids (list, optional): A list of sample IDs to load. If not provided, the class
+                                  will load all samples found in the annotation_dir. Default is None.
+            annotation_dir (str, optional): The directory containing annotation files
+                                            (relative to dataset_dir). Default is 'annotations'.
+            image_dir (str, optional): The directory containing image files
+                                       (relative to dataset_dir). Default is 'images'.
+            min_object (int, optional): The minimum number of pixels required for an object
+                                        to be considered valid. Default is 0.
+        """
+        super(SA1BDataset, self).__init__(**kwargs)
+        if ids is None:
+            ids = [file.replace(".json",'') for file in os.listdir(os.path.join(dataset_dir,annotation_dir))]
+        self.min_object = min_object
+        self.samples = [load_sample(dataset_dir,id,annotation_dir,image_dir) for id in ids]
+        self.dataset_dir = Path(dataset_dir)
+
+        self.dataset_samples = self.get_images_and_ids_list()
+     
+    def get_sample(self, index):
+        image_path, annotation, h, w = self.dataset_samples[index]
+        image = cv2.imread(image_path)
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+
+        instance_mask = self.annToMask(annotation, h, w)
+
+        return DSample(image, instance_mask, objects_ids=[1], sample_id=index)
+
+    def get_images_and_ids_list(self):
+        pkl_path = self.dataset_dir / "images_and_ids_list.pkl"
+
+        if pkl_path.exists():
+            with open(str(pkl_path), 'rb') as fp:
+                images_and_ids_list = pkl.load(fp)
+        else:
+            images_and_ids_list = []
+            for img, info in tqdm.tqdm(self.samples):
+                image_info = json.load(open(info))
+                annotations = image_info["annotations"]
+                image_info = image_info['image']
+                
+                instance_masks = []
+                for annotation in annotations:
+                    images_and_ids_list.append((img, annotation, image_info["height"], image_info["width"]))
+        
+        with open(str(pkl_path), 'wb') as fp:
+            pkl.dump(images_and_ids_list, fp)
+
+        return images_and_ids_list
+
+    # The following two functions are from pycocotools with a few changes.
+    def annToRLE(self, ann, height, width):
+        """
+        Convert annotation which can be polygons, uncompressed RLE to RLE.
+        :return: binary mask (numpy 2D array)
+        """
+        segm = ann['segmentation']
+        if isinstance(segm, list):
+            # polygon -- a single object might consist of multiple parts
+            # we merge all parts into one mask rle code
+            rles = maskUtils.frPyObjects(segm, height, width)
+            rle = maskUtils.merge(rles)
+        elif isinstance(segm['counts'], list):
+            # uncompressed RLE
+            rle = maskUtils.frPyObjects(segm, height, width)
+        else:
+            # rle
+            rle = ann['segmentation']
+        return rle
+
+    def annToMask(self, ann, height, width):
+        """
+        Convert annotation which can be polygons, uncompressed RLE, or RLE to binary mask.
+        :return: binary mask (numpy 2D array)
+        """
+        rle = self.annToRLE(ann, height, width)
+        m = maskUtils.decode(rle)
+        return m

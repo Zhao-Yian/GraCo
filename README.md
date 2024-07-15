@@ -50,11 +50,23 @@ Based on these pairs, we propose a granularity-controllable learning strategy th
 pip install -r requirements.txt
 ```
 
+### 🍇 Our interactive demo
+
+```bash
+# running on cpu
+python demo.py --checkpoint path/to/weights/sbd_vit_base.pth --lora_checkpoint path/to/checkpoints/last_checkpoint.pth --cpu
+
+# running on gpu
+python demo.py --checkpoint path/to/weights/sbd_vit_base.pth --lora_checkpoint path/to/checkpoints/last_checkpoint.pth --gpu
+
+```
+
+
 ### 🏕️ Any-Granularity mask Generator
 
 ```bash
 python any_granularity_generator.py --checkpoint weights/simpleclick/sbd_vit_base.pth  \
-    --save-path part_output --save-name proposal.pkl
+    --save-path part_output --save-name proposal.pkl --dataset-path /path/to/datasets/SBD/dataset
 ```
 
 ### 🦄 Train and Evaluation
@@ -76,14 +88,14 @@ CUDA_VISIBLE_DEVICES=0,1,2,3 python train.py models/plainvit_base448_graco.py --
 ```bash
 python evaluate.py NoBRS --datasets GrabCut,Berkeley,DAVIS,SBD \
     --checkpoint weights/simpleclick/sbd_vit_base.pth \
-    --lora_checkpoint path/to/checkpoints/last_checkpoint.pth --gra-oracle
+    --lora_checkpoint path/to/checkpoints/last_checkpoint.pth
 ```
 
 - Evaluation on PartImageNet, SA-1B
 ```bash
 python evaluate.py NoBRS --datasets PartImageNet,SA-1B \
     --checkpoint weights/simpleclick/sbd_vit_base.pth \
-    --lora_checkpoint path/to/checkpoints/last_checkpoint.pth --gra-oracle
+    --lora_checkpoint path/to/checkpoints/last_checkpoint.pth
 ```
 
 - Evaluation on PascalPart (five categories)
@@ -92,7 +104,7 @@ for c in "sheep" "cat" "dog" "cow" "aeroplane" "bus";
 do 
   python evaluate.py NoBRS --datasets PascalPart \
     --checkpoint weights/simpleclick/sbd_vit_base.pth \
-    --lora_checkpoint path/to/checkpoints/last_checkpoint.pth --gra-oracle --class-name $c; 
+    --lora_checkpoint path/to/checkpoints/last_checkpoint.pth --class-name $c; 
 done
 ```
 
