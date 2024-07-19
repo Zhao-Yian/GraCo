@@ -137,3 +137,15 @@ done
 ## Acknowledgements
 This repository is built upon [SimpleClick](https://github.com/uncbiag/SimpleClick). The project page is built using the template of [Nerfies](https://nerfies.github.io/). 
 Thank the authors of these open source repositories for their efforts. And thank the ACs and reviewers for their effort when dealing with our paper.
+
+## Citing
+If you find this repository helpful, please consider citing our paper.
+```
+@inproceedings{zhao2024graco,
+  title={GraCo: Granularity-Controllable Interactive Segmentation},
+  author={Zhao, Yian and Li, Kehan and Cheng, Zesen and Qiao, Pengchong and Zheng, Xiawu and Ji, Rongrong and Liu, Chang and Yuan, Li and Chen, Jie},
+  booktitle={Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition},
+  pages={3501--3510},
+  year={2024}
+}
+```
