@@ -2,19 +2,19 @@ INTERACTIVE_MODELS_PATH: "./weights"
 EXPS_PATH: "./outputs"
 
 # Evaluation datasets
-GRABCUT_PATH: "/root/share/zhaoyian/datasets/GrabCut"
-BERKELEY_PATH: "/root/share/zhaoyian/datasets/Berkeley"
-DAVIS_PATH: "/root/share/zhaoyian/datasets/DAVIS"
-PARTIMAGENET_PATH: "/root/share/zhaoyian/datasets/PartImageNet"
-SA1B_PATH: "/root/share/zhaoyian/datasets/SAM"
-PASCALPART_PATH: "/root/share/zhaoyian/datasets/VOCdevkit/VOC2010"
-BraTS_PATH: "/root/share/zhaoyian/datasets/BraTS20"
-ssTEM_PATH: "/root/share/zhaoyian/datasets/ssTEM/stack1"
-OAIZIB_PATH: "/root/share/zhaoyian/datasets/OAI-ZIB"
-PASCALVOC_PATH: "/root/share/zhaoyian/datasets/VOCdevkit/VOC2010"
+GRABCUT_PATH: "/path/to/datasets/GrabCut"
+BERKELEY_PATH: "/path/to/datasets/Berkeley"
+DAVIS_PATH: "/path/to/datasets/DAVIS"
+PARTIMAGENET_PATH: "/path/to/datasets/PartImageNet"
+SA1B_PATH: "/path/to/datasets/SAM"
+PASCALPART_PATH: "/path/to/datasets/VOCdevkit/VOC2010"
+BraTS_PATH: "/path/to/datasets/BraTS20"
+ssTEM_PATH: "/path/to/datasets/ssTEM/stack1"
+OAIZIB_PATH: "/path/to/datasets/OAI-ZIB"
+PASCALVOC_PATH: "/path/to/datasets/VOCdevkit/VOC2010"
 
 # Train datasets
-SBD_PATH: "/root/share/zhaoyian/datasets/SBD/dataset"
+SBD_PATH: "/path/to/datasets/SBD/dataset"
 
 # You can download the weights for HRNet from the repository:
 # https://github.com/HRNet/HRNet-Image-Classification
