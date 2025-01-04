@@ -35,7 +35,7 @@ class ISTrainer(object):
                  net_inputs=('images', 'points'),
                  max_num_next_clicks=0,
                  click_models=None,
-                 prev_mask_drop_prob=0.0
+                 prev_mask_drop_prob=0.0,
                  ):
         self.cfg = cfg
         self.model_cfg = model_cfg
@@ -50,7 +50,7 @@ class ISTrainer(object):
         self.prev_mask_drop_prob = prev_mask_drop_prob
 
         self.enable_lora = cfg.enable_lora
-        self.load_gra = cfg.load_gra
+        self.lora_switch_epoch = cfg.lora_switch_epoch
 
         if cfg.distributed:
             cfg.batch_size //= cfg.ngpus
@@ -106,23 +106,33 @@ class ISTrainer(object):
         self.net = model.to(self.device)
         self.lr = optimizer_params['lr']
 
+        self.white_list = None
         if self.enable_lora:
             lora.mark_only_lora_as_trainable(self.net)
-            white_list = ['gra_embed']
+            self.white_list = ["gra_embed", "phrase_encoder.phrase2gra_proj"]
             for param in self.net.named_parameters():
-                for key in white_list:
+                for key in self.white_list:
                     if key in param[0]:
-                        param[1].requires_grad=True
+                        param[1].requires_grad = True
+        else:
+            self.freeze_list = cfg.freeze_list if cfg.freeze_list is not None else []
+            for param in self.net.named_parameters():
+                for key in self.freeze_list:
+                    if key in param[0]:
+                        param[1].requires_grad = False
 
-        param_to_train=[]
-        params_all=self.net.named_parameters()
+        param_to_train = []
+        params_all = self.net.named_parameters()
         for param in params_all:
             if param[1].requires_grad:
                 param_to_train.append(param[0])
         print(param_to_train)
 
         if lr_scheduler is not None:
-            self.lr_scheduler = lr_scheduler(optimizer=self.optim)
+            if isinstance(lr_scheduler, list):
+                self.lr_scheduler = torch.optim.lr_scheduler.SequentialLR(self.optim, schedulers=[s(optimizer=self.optim) for s in lr_scheduler], milestones=[55])
+            else:
+                self.lr_scheduler = lr_scheduler(optimizer=self.optim)
             if cfg.start_epoch > 0:
                 for _ in range(cfg.start_epoch):
                     self.lr_scheduler.step()
@@ -156,7 +166,7 @@ class ISTrainer(object):
             self.train_data.sampler.set_epoch(epoch)
 
         log_prefix = 'Train' + self.task_prefix.capitalize()
-        tbar = tqdm(self.train_data, file=self.tqdm_out, ncols=100)\
+        tbar = tqdm(self.train_data, file=self.tqdm_out, ncols=100) \
             if self.is_master else self.train_data
 
         for metric in self.train_metrics:
@@ -168,7 +178,7 @@ class ISTrainer(object):
             global_step = epoch * len(self.train_data) + i
 
             loss, losses_logging, splitted_batch_data, outputs = \
-                self.batch_forward(batch_data)
+                self.batch_forward(batch_data, epoch=epoch)
 
             self.optim.zero_grad()
             loss.backward()
@@ -193,10 +203,10 @@ class ISTrainer(object):
                     self.save_visualization(splitted_batch_data, outputs, global_step, prefix='train')
 
                 self.sw.add_scalar(tag=f'{log_prefix}States/learning_rate',
-                                   value=self.lr if not hasattr(self, 'lr_scheduler') else self.lr_scheduler.get_lr()[-1],
+                                   value=self.lr if not hasattr(self, 'lr_scheduler') else self.lr_scheduler.get_last_lr()[-1],
                                    global_step=global_step)
 
-                tbar.set_description(f'Epoch {epoch}, training loss {train_loss/(i+1):.4f}')
+                tbar.set_description(f'Epoch {epoch}, training loss {train_loss / (i + 1):.4f}')
                 for metric in self.train_metrics:
                     metric.log_states(self.sw, f'{log_prefix}Metrics/{metric.name}', global_step)
 
@@ -207,8 +217,9 @@ class ISTrainer(object):
                                    global_step=epoch, disable_avg=True)
 
             save_checkpoint(self.net, self.cfg.CHECKPOINTS_PATH, prefix=self.task_prefix,
-                            epoch=None, multi_gpu=self.cfg.multi_gpu, save_lora=self.enable_lora)
-            
+                            epoch=None, multi_gpu=self.cfg.multi_gpu, save_lora=self.enable_lora,
+                            white_list=self.white_list)
+
             if isinstance(self.checkpoint_interval, (list, tuple)):
                 checkpoint_interval = [x for x in self.checkpoint_interval if x[0] <= epoch][-1][1]
             else:
@@ -216,7 +227,8 @@ class ISTrainer(object):
 
             if epoch % checkpoint_interval == 0:
                 save_checkpoint(self.net, self.cfg.CHECKPOINTS_PATH, prefix=self.task_prefix,
-                                epoch=epoch, multi_gpu=self.cfg.multi_gpu, save_lora=self.enable_lora)
+                                epoch=epoch, multi_gpu=self.cfg.multi_gpu, save_lora=self.enable_lora,
+                                white_list=self.white_list)
 
         if hasattr(self, 'lr_scheduler'):
             self.lr_scheduler.step()
@@ -249,7 +261,7 @@ class ISTrainer(object):
             val_loss += batch_losses_logging['overall'].item()
 
             if self.is_master:
-                tbar.set_description(f'Epoch {epoch}, validation loss: {val_loss/(i + 1):.4f}')
+                tbar.set_description(f'Epoch {epoch}, validation loss: {val_loss / (i + 1):.4f}')
                 for metric in self.val_metrics:
                     metric.log_states(self.sw, f'{log_prefix}Metrics/{metric.name}', global_step)
 
@@ -262,24 +274,38 @@ class ISTrainer(object):
                 self.sw.add_scalar(tag=f'{log_prefix}Metrics/{metric.name}', value=metric.get_epoch_value(),
                                    global_step=epoch, disable_avg=True)
 
-    def batch_forward(self, batch_data, validation=False):
+    def batch_forward(self, batch_data, validation=False, epoch=-1):
         metrics = self.val_metrics if validation else self.train_metrics
         losses_logging = dict()
-
         with torch.set_grad_enabled(not validation):
-            batch_data = {k: v.to(self.device) for k, v in batch_data.items()}
             gra = None
-            if self.load_gra:
-                image, gt_mask, points, gra = batch_data['images'], batch_data['instances'], batch_data['points'], batch_data['gra']
-            else:
-                image, gt_mask, points = batch_data['images'], batch_data['instances'], batch_data['points']
-            
-            orig_image, orig_gt_mask, orig_points = image.clone(), gt_mask.clone(), points.clone()
+            text = None
+            for k, v in batch_data.items():
+                if k == 'text':
+                    text = batch_data['text'].to(self.device)
+                elif k == 'gra':
+                    gra = batch_data['gra'].to(self.device)
+                else:
+                    batch_data[k] = v.to(self.device)
+
+            image, gt_mask, points = batch_data['images'], batch_data['instances'], batch_data['points']
+            orig_gt_mask = gt_mask.clone()
             prev_output = torch.zeros_like(image, dtype=torch.float32)[:, :1, :, :]
             last_click_indx = None
 
             with torch.no_grad():
                 num_iters = random.randint(0, self.max_num_next_clicks)
+                if gra is not None and text is not None:
+                    if epoch == self.lora_switch_epoch:
+                        print(f"Switch LoRA to Granularity Slider in epoch {epoch}.")
+                    if epoch < self.lora_switch_epoch:
+                        if hasattr(self.trainset, "select_proposal"):
+                            self.trainset.select_proposal = False
+                        gra = None
+                    else:
+                        if hasattr(self.trainset, "select_proposal"):
+                            self.trainset.select_proposal = True
+                        text = None
 
                 for click_indx in range(num_iters):
                     last_click_indx = click_indx
@@ -293,8 +319,7 @@ class ISTrainer(object):
                         eval_model = self.click_models[click_indx]
 
                     net_input = torch.cat((image, prev_output), dim=1) if self.net.with_prev_mask else image
-                    prev_output = torch.sigmoid(eval_model(net_input, points, gra)['instances'])
-
+                    prev_output = torch.sigmoid(eval_model(net_input, points, gra, text)['instances'])
                     points = get_next_points(prev_output, orig_gt_mask, points, click_indx + 1)
 
                     if not validation:
@@ -304,11 +329,10 @@ class ISTrainer(object):
                     zero_mask = np.random.random(size=prev_output.size(0)) < self.prev_mask_drop_prob
                     prev_output[zero_mask] = torch.zeros_like(prev_output[zero_mask])
 
-            batch_data['points'] = points
-            
+                batch_data['points'] = points
 
             net_input = torch.cat((image, prev_output), dim=1) if self.net.with_prev_mask else image
-            output = self.net(net_input, points, gra)
+            output = self.net(net_input, points, gra, text)
 
             loss = 0.0
             loss = self.add_loss('instance_loss', loss, losses_logging, validation,
@@ -429,9 +453,7 @@ def get_next_points(pred, gt, points, click_indx, pred_thresh=0.49):
                 points[bindx, 2 * num_points - click_indx, 0] = float(coords[0])
                 points[bindx, 2 * num_points - click_indx, 1] = float(coords[1])
                 points[bindx, 2 * num_points - click_indx, 2] = float(click_indx)
-
     return points
-
 
 def load_weights(model, path_to_weights):
     current_state_dict = model.state_dict()

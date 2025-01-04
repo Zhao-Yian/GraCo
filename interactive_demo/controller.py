@@ -8,10 +8,11 @@ from isegm.utils.vis import draw_with_blend_and_clicks
 
 
 class InteractiveController:
-    def __init__(self, net, device, predictor_params, update_image_callback, prob_thresh=0.5, granularity=1.0):
+    def __init__(self, net, device, predictor_params, update_image_callback, prob_thresh=0.5, granularity=1.0, phrase=None):
         self.net = net
         self.prob_thresh = prob_thresh
         self.granularity = granularity
+        self.phrase = phrase
         self.clicker = clicker.Clicker()
         self.states = []
         self.probs_history = []
@@ -46,7 +47,7 @@ class InteractiveController:
         self._init_mask = torch.tensor(self._init_mask, device=self.device).unsqueeze(0).unsqueeze(0)
         self.clicker.click_indx_offset = 1
 
-    def add_click(self, x, y, is_positive, gra=None):
+    def add_click(self, x, y, is_positive):
         self.states.append({
             'clicker': self.clicker.get_state(),
             'predictor': self.predictor.get_states()
@@ -54,9 +55,9 @@ class InteractiveController:
 
         click = clicker.Click(is_positive=is_positive, coords=(y, x))
         self.clicker.add_click(click)
-        pred = self.predictor.get_prediction(self.clicker, prev_mask=self._init_mask, gra=self.granularity)
+        pred = self.predictor.get_prediction(self.clicker, prev_mask=self._init_mask, gra=self.granularity, phrase=self.phrase)
         if self._init_mask is not None and len(self.clicker) == 1:
-            pred = self.predictor.get_prediction(self.clicker, prev_mask=self._init_mask, gra=self.granularity)
+            pred = self.predictor.get_prediction(self.clicker, prev_mask=self._init_mask, gra=self.granularity, phrase=self.phrase)
 
         torch.cuda.empty_cache()
 

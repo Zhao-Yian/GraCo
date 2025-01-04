@@ -6,7 +6,7 @@ from isegm.inference.transforms import ZoomIn
 
 
 def get_predictor(net, brs_mode, device,
-                  gra=None, sam_type=None,
+                  sam_type=None,
                   prob_thresh=0.49,
                   with_flip=True,
                   zoom_in_params=dict(),
@@ -42,7 +42,7 @@ def get_predictor(net, brs_mode, device,
     if brs_mode == 'NoBRS':
         if predictor_params is not None:
             predictor_params_.update(predictor_params)
-        predictor = BasePredictor(net, device, gra=gra, sam_type=sam_type, zoom_in=zoom_in, with_flip=with_flip, **predictor_params_)
+        predictor = BasePredictor(net, device, sam_type=sam_type, zoom_in=zoom_in, with_flip=with_flip, **predictor_params_)
     elif brs_mode.startswith('f-BRS'):
         predictor_params_.update({
             'net_clicks_limit': 8,

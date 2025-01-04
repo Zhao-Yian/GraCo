@@ -1,0 +1,14 @@
+# Complementarity Analysis (Take GraCo w/ MMT+FMG ViT-B as an example)
+for c in "head" "wheel" "torso"; do CUDA_VISIBLE_DEVICES=0 python evaluate.py NoBRS --datasets PascalPart --checkpoint weights/simpleclick/sbd_vit_base.pth --lora_checkpoint weights/graco/GraCo_base_lora.pth --gra 0.2 --part-name $c; done
+for c in "head" "wheel" "torso"; do CUDA_VISIBLE_DEVICES=0 python evaluate.py NoBRS --datasets PascalPart --checkpoint weights/simpleclick/sbd_vit_base.pth --lora_checkpoint weights/graco/GraCo_base_lora.pth --gra 0.3 --part-name $c; done
+for c in "head" "wheel" "torso"; do CUDA_VISIBLE_DEVICES=0 python evaluate.py NoBRS --datasets PascalPart --checkpoint weights/simpleclick/sbd_vit_base.pth --lora_checkpoint weights/graco/GraCo_base_lora.pth --gra 0.4 --part-name $c; done
+for c in "head" "wheel" "torso"; do CUDA_VISIBLE_DEVICES=0 python evaluate.py NoBRS --datasets PascalPart --checkpoint weights/simpleclick/sbd_vit_base.pth --lora_checkpoint weights/graco/GraCo_base_lora.pth --gra 0.5 --part-name $c; done
+for c in "head" "wheel" "torso"; do CUDA_VISIBLE_DEVICES=0 python evaluate.py NoBRS --datasets PascalPart --checkpoint weights/simpleclick/sbd_vit_base.pth --lora_checkpoint weights/graco/GraCo_base_lora.pth --gra 0.6 --part-name $c; done
+for c in "head" "wheel" "torso"; do CUDA_VISIBLE_DEVICES=0 python evaluate.py NoBRS --datasets PascalPart --checkpoint weights/simpleclick/sbd_vit_base.pth --lora_checkpoint weights/graco/GraCo_base_lora.pth --gra 0.7 --part-name $c; done
+
+for c in "head" "body" "foot"; do CUDA_VISIBLE_DEVICES=0 python evaluate.py NoBRS --datasets PartImageNet --checkpoint weights/simpleclick/sbd_vit_base.pth --lora_checkpoint weights/graco/GraCo_base_lora.pth --gra 0.2 --part-name $c; done
+for c in "head" "body" "foot"; do CUDA_VISIBLE_DEVICES=0 python evaluate.py NoBRS --datasets PartImageNet --checkpoint weights/simpleclick/sbd_vit_base.pth --lora_checkpoint weights/graco/GraCo_base_lora.pth --gra 0.3 --part-name $c; done
+for c in "head" "body" "foot"; do CUDA_VISIBLE_DEVICES=0 python evaluate.py NoBRS --datasets PartImageNet --checkpoint weights/simpleclick/sbd_vit_base.pth --lora_checkpoint weights/graco/GraCo_base_lora.pth --gra 0.4 --part-name $c; done
+for c in "head" "body" "foot"; do CUDA_VISIBLE_DEVICES=0 python evaluate.py NoBRS --datasets PartImageNet --checkpoint weights/simpleclick/sbd_vit_base.pth --lora_checkpoint weights/graco/GraCo_base_lora.pth --gra 0.5 --part-name $c; done
+for c in "head" "body" "foot"; do CUDA_VISIBLE_DEVICES=0 python evaluate.py NoBRS --datasets PartImageNet --checkpoint weights/simpleclick/sbd_vit_base.pth --lora_checkpoint weights/graco/GraCo_base_lora.pth --gra 0.6 --part-name $c; done
+for c in "head" "body" "foot"; do CUDA_VISIBLE_DEVICES=0 python evaluate.py NoBRS --datasets PartImageNet --checkpoint weights/simpleclick/sbd_vit_base.pth --lora_checkpoint weights/graco/GraCo_base_lora.pth --gra 0.7 --part-name $c; done

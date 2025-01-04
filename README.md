@@ -21,6 +21,19 @@
 
 This is the official implementation for our <span style='color: #EB5353;font-weight:bold'>CVPR'24 highlight</span> paper "GraCo: Granularity-Controllable Interactive Segmentation".
 
+## 📣 Updates 🔥🔥🔥
+
+---
+
+- **[2025.1.4]** Add a new type of granularity control signal: _Semantic Phrase_, which is very useful for segmenting specific parts (head segmentation, hand segmentation, etc.).
+- **[2025.1.4]** Releases the [weights](./weights/graco), and new training and inference [code](./isegm) that supports both the granularity slider and the semantic phrase.
+- **[2025.1.4]** Update the interactive [demo](./interactive_demo) to support two granularity control signals. **The tool can be put directly into practice with open source weights.**
+- **[2025.1.4]** Add a novel Multi-grained Mask Trie (MMT) module and an extended Granularity-Controllable Learning (GCL) strategy. 
+The former automatically extends the granularity abundance of existing part annotations through heuristic part merging, and the latter achieves efficient scaling and training of two granularity signals through dual-branch LoRA.
+The original AGG is split into the Fine-grained Mask Generator (FMG) and the Mask Granularity Estimator (MGE). The FMG is the same as the mask engine of the AGG, and the MGE is responsible for estimating the two types of granularity control signals for each mask.
+
+---
+
 ## 💡 Introduction
 
 Current IS pipelines fall into two categories: single-granularity output and multi-granularity output. The latter aims to alleviate the spatial ambiguity present in the former.
@@ -57,15 +70,17 @@ pip install -r requirements.txt
 
 ```bash
 # running on cpu
-python demo.py --checkpoint path/to/weights/sbd_vit_base.pth --lora_checkpoint path/to/checkpoints/last_checkpoint.pth --cpu
+python demo.py --checkpoint path/to/weights/sbd_vit_base.pth --lora_checkpoint path/to/GraCo_base_lora.pth --cpu
 
 # running on gpu
-python demo.py --checkpoint path/to/weights/sbd_vit_base.pth --lora_checkpoint path/to/checkpoints/last_checkpoint.pth --gpu
+python demo.py --checkpoint path/to/weights/sbd_vit_base.pth --lora_checkpoint path/to/GraCo_base_lora.pth --gpu
 
 ```
 
 
-### 🏕️ Any-Granularity mask Generator
+### 🏕️ Any-Granularity mask Generator (Optional)
+
+- If you do not use the automatically generated pseudo mask proposals, simply remove `--part_path` in the training command.
 
 ```bash
 python any_granularity_generator.py --checkpoint weights/simpleclick/sbd_vit_base.pth  \
@@ -74,72 +89,33 @@ python any_granularity_generator.py --checkpoint weights/simpleclick/sbd_vit_bas
 
 ### 🦄 Train and Evaluation
 
-- Download pre-trained weights
+- Download pre-trained weights and place them in `./weights/simpleclick/`
 
 [SimpleClick models](https://drive.google.com/drive/folders/1qpK0gtAPkVMF7VC42UA9XF4xMWr5KJmL?usp=sharing)
 
 - Train
 
 ```bash
-CUDA_VISIBLE_DEVICES=0,1,2,3 python train.py models/plainvit_base448_graco.py --load_gra \
-    --part_path part_output/proposals.pkl --enable_lora \
-    --weights weights/simpleclick/sbd_vit_base.pth \
-    --gpus 0,1,2,3
+bash train.sh
 ```
 
-- Evaluation on object-level benchmarks
+- Evaluation on Instance-level, Part-level, Out-of-domain benchmarks
 ```bash
-python evaluate.py NoBRS --datasets GrabCut,Berkeley,DAVIS,SBD \
-    --checkpoint weights/simpleclick/sbd_vit_base.pth \
-    --lora_checkpoint path/to/checkpoints/last_checkpoint.pth
+bash eval.sh
 ```
 
-- Evaluation on PartImageNet, SA-1B
+- Complementarity analysis of two types of granularity control signals
 ```bash
-python evaluate.py NoBRS --datasets PartImageNet,SA-1B \
-    --checkpoint weights/simpleclick/sbd_vit_base.pth \
-    --lora_checkpoint path/to/checkpoints/last_checkpoint.pth
-```
-
-- Evaluation on PascalPart (five categories)
-```bash
-for c in "sheep" "cat" "dog" "cow" "aeroplane" "bus"; 
-do 
-  python evaluate.py NoBRS --datasets PascalPart \
-    --checkpoint weights/simpleclick/sbd_vit_base.pth \
-    --lora_checkpoint path/to/checkpoints/last_checkpoint.pth --class-name $c; 
-done
-```
-
-### 🌋 Evaluation of SAM
-
-- Download SAM
-
-[ViT-B SAM model](https://dl.fbaipublicfiles.com/segment_anything/sam_vit_b_01ec64.pth)
-
-[ViT-L SAM model](https://dl.fbaipublicfiles.com/segment_anything/sam_vit_l_0b3195.pth)
-
-```bash
-python evaluate.py NoBRS --datasets GrabCut,Berkeley,DAVIS,SBD,PartImageNet,SA-1B \
-    --checkpoint weights/sam/sam_vit_b_01ec64.pth \
-    --sam-model vit_b --sam-type SAM --oracle
-```
-
-```bash
-for c in "sheep" "cat" "dog" "cow" "aeroplane" "bus"; 
-do 
-  python evaluate.py NoBRS --datasets PascalPart \
-    --checkpoint weights/sam/sam_vit_b_01ec64.pth \
-    --sam-model vit_b --sam-type SAM --oracle --class-name $c; 
-done
+bash analysis.sh
 ```
 
 ## Acknowledgements
 This repository is built upon [SimpleClick](https://github.com/uncbiag/SimpleClick). The project page is built using the template of [Nerfies](https://nerfies.github.io/). 
 Thank the authors of these open source repositories for their efforts. And thank the ACs and reviewers for their effort when dealing with our paper.
 
-## Citing
+## ✨ Citation
 If you find this repository helpful, please consider citing our paper.
+
 ```
 @inproceedings{zhao2024graco,
   title={GraCo: Granularity-Controllable Interactive Segmentation},

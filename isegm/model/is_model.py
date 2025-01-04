@@ -36,14 +36,16 @@ class ISModel(nn.Module):
         self.dist_maps = DistMaps(norm_radius=norm_radius, spatial_scale=1.0,
                                   cpu_mode=cpu_dist_maps, use_disks=use_disks)
 
-    def forward(self, image, points, gra=None):
+    def forward(self, image, points, gra=None, text=None):
         image, prev_mask = self.prepare_input(image)
         coord_features = self.get_coord_features(image, prev_mask, points)
         coord_features = self.maps_transform(coord_features)
-        if gra is not None:
+        if gra is None and text is None:
+            outputs = self.backbone_forward(image, coord_features)
+        elif gra is not None and text is None:
             outputs = self.backbone_forward(image, coord_features, gra=gra)
         else:
-            outputs = self.backbone_forward(image, coord_features)
+            outputs = self.backbone_forward(image, coord_features, gra=gra, text=text)
 
         outputs['instances'] = nn.functional.interpolate(outputs['instances'], size=image.size()[2:],
                                                          mode='bilinear', align_corners=True)

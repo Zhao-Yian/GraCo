@@ -44,7 +44,7 @@ def parse_args():
         default='GrabCut,Berkeley,SBD,DAVIS',
         help='List of datasets on which the model should be tested. '
         'Datasets are separated by a comma. Possible choices: '
-        'GrabCut, Berkeley, DAVIS, SBD, PascalPart, PartImageNet, SA-1B')
+        'GrabCut, Berkeley, DAVIS, SBD, PascalPart, PartImageNet, SA1B, BraTS, ssTEM, OAIZIB')
 
     group_device = parser.add_mutually_exclusive_group()
     group_device.add_argument('--gpus', type=str, default='0', help='ID of used GPU.')
@@ -87,8 +87,9 @@ def parse_args():
     parser.add_argument('--vis-preds', action='store_true', default=False)
     parser.add_argument('--class-name', type=str, default=None)
     parser.add_argument('--part-name', type=str, default=None)
-
-    parser.add_argument('--gra', type=float, default=-1, help='granularity')
+    parser.add_argument('--graco', action='store_true', default=False)
+    parser.add_argument('--gra', type=float, default=None, help='Granularity slider')
+    parser.add_argument('--phrase', type=str, default=None, help='Semantic phrase')
     parser.add_argument('--lora_checkpoint', type=str, default=None)
     
     parser.add_argument(
@@ -162,8 +163,6 @@ def main():
                 model = utils.load_is_model(checkpoint_path, args.device, args.eval_ritm, args.lora_checkpoint)
                 predictor_params, zoomin_params = get_predictor_and_zoomin_params(
                     args, dataset_name, eval_ritm=args.eval_ritm)
-
-                # For SimpleClick models, we usually need to interpolate the positional embedding
                 if not args.eval_ritm:
                     interpolate_pos_embed_inference(model.backbone, zoomin_params['target_size'],
                                                     args.device)
@@ -171,7 +170,6 @@ def main():
                     model,
                     args.mode,
                     args.device,
-                    gra=args.gra,
                     prob_thresh=args.thresh,
                     predictor_params=predictor_params,
                     zoom_in_params=zoomin_params)
@@ -185,8 +183,11 @@ def main():
             dataset_results = evaluate_dataset(
                 dataset,
                 predictor,
+                graco=args.graco,
                 sam_type=args.sam_type,
                 oracle=args.oracle,
+                gra=args.gra,
+                phrase=args.phrase,
                 pred_thr=args.thresh,
                 max_iou_thr=args.target_iou,
                 min_clicks=args.min_n_clicks,

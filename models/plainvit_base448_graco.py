@@ -1,7 +1,7 @@
 from isegm.utils.exp_imports.default import *
 from isegm.model.modeling.transformer_helper.cross_entropy_loss import CrossEntropyLoss
 
-MODEL_NAME = 'GraCo_sbd_plainvit_base448'
+MODEL_NAME = 'plainvit_base448_graco'
 
 
 def main(cfg):
@@ -27,8 +27,8 @@ def init_model(cfg):
     )
 
     neck_params = dict(
-        in_dim = 768,
-        out_dims = [128, 256, 512, 1024],
+        in_dim=768,
+        out_dims=[128, 256, 512, 1024],
     )
 
     head_params = dict(

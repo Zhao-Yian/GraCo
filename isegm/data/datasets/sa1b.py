@@ -3,8 +3,6 @@ Written by Yian Zhao
 """
 
 from pycocotools import mask as maskUtils
-import os
-import numpy as np
 import os, json, cv2
 import numpy as np
 from isegm.data.base import ISDataset
@@ -14,24 +12,25 @@ from pathlib import Path
 import random
 import tqdm
 
-
-def load_sample(root, id, annotation_dir='annotations',image_dir='images'):
-    img = os.path.join(root,image_dir,id+".jpg") 
-    annotation  = os.path.join(root,annotation_dir,id+".json") 
-    return (img,annotation)
+def load_sample(root, id, annotation_dir='annotations', image_dir='images'):
+    img = os.path.join(root, image_dir, id + ".jpg")
+    annotation = os.path.join(root, annotation_dir, id + ".json")
+    return (img, annotation)
 
 class SA1BDataset(ISDataset):
     """A class to load SA-1B: https://segment-anything.com/dataset/index.html
-    
+
     Attributes:
         min_object (int): The minimum number of pixels required for an object to be considered valid.
         samples (list): A list of loaded samples from the dataset.
         image_info (list): A list containing image information for each sample.
 
     """
-    def __init__(self, dataset_dir, ids=None, annotation_dir='annotations', image_dir='images', min_object=1, **kwargs):
+
+    def __init__(self, dataset_dir, ids=None, annotation_dir='annotations', image_dir='images', min_object=1,
+                 num_images=1000, **kwargs):
         """Initializes SA1BDataset class.
-        
+
         Args:
             dataset_dir (str): The directory containing the dataset.
             ids (list, optional): A list of sample IDs to load. If not provided, the class
@@ -45,13 +44,13 @@ class SA1BDataset(ISDataset):
         """
         super(SA1BDataset, self).__init__(**kwargs)
         if ids is None:
-            ids = [file.replace(".json",'') for file in os.listdir(os.path.join(dataset_dir,annotation_dir))]
+            ids = [file.replace(".json", '') for file in os.listdir(os.path.join(dataset_dir, annotation_dir))]
         self.min_object = min_object
-        self.samples = [load_sample(dataset_dir,id,annotation_dir,image_dir) for id in ids]
+        self.samples = [load_sample(dataset_dir, id, annotation_dir, image_dir) for id in ids][:num_images]
         self.dataset_dir = Path(dataset_dir)
 
         self.dataset_samples = self.get_images_and_ids_list()
-     
+
     def get_sample(self, index):
         image_path, annotation, h, w = self.dataset_samples[index]
         image = cv2.imread(image_path)
@@ -73,11 +72,42 @@ class SA1BDataset(ISDataset):
                 image_info = json.load(open(info))
                 annotations = image_info["annotations"]
                 image_info = image_info['image']
-                
+
                 instance_masks = []
                 for annotation in annotations:
-                    images_and_ids_list.append((img, annotation, image_info["height"], image_info["width"]))
-        
+                    instance_mask = self.annToMask(annotation, image_info["height"],
+                                                   image_info["width"])
+                    # Some objects are so small that they're less than 1 pixel area
+                    # and end up rounded out. Skip those objects.
+                    area = instance_mask.sum()
+                    if area < self.min_object:
+                        continue
+                    instance_masks.append(instance_mask)
+
+                # random sample max five for each image
+                selected_masks = []
+                selected_indices = []
+                max_len = min(len(instance_masks), 5)
+                max_iter = len(instance_masks) * 2
+                cur_iter = 0
+                while len(selected_masks) < max_len and cur_iter < max_iter:
+                    instance_mask = random.choice(instance_masks)
+                    mask_index = random.randint(0, len(instance_masks) - 1)
+                    instance_mask = instance_masks[mask_index]
+                    is_overlap = False
+                    for selected_mask in selected_masks:
+                        if np.any(np.logical_and(instance_mask, selected_mask)):
+                            is_overlap = True
+                            break
+                    if not is_overlap:
+                        selected_indices.append(mask_index)
+                        selected_masks.append(instance_mask)
+                        instance_masks.pop(mask_index)
+                    cur_iter += 1
+
+                for idx in selected_indices:
+                    images_and_ids_list.append((img, annotations[idx], image_info["height"], image_info["width"]))
+
         with open(str(pkl_path), 'wb') as fp:
             pkl.dump(images_and_ids_list, fp)
 

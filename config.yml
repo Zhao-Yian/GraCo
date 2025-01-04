@@ -8,6 +8,10 @@ DAVIS_PATH: "/root/share/zhaoyian/datasets/DAVIS"
 PARTIMAGENET_PATH: "/root/share/zhaoyian/datasets/PartImageNet"
 SA1B_PATH: "/root/share/zhaoyian/datasets/SAM"
 PASCALPART_PATH: "/root/share/zhaoyian/datasets/VOCdevkit/VOC2010"
+BraTS_PATH: "/root/share/zhaoyian/datasets/BraTS20"
+ssTEM_PATH: "/root/share/zhaoyian/datasets/ssTEM/stack1"
+OAIZIB_PATH: "/root/share/zhaoyian/datasets/OAI-ZIB"
+PASCALVOC_PATH: "/root/share/zhaoyian/datasets/VOCdevkit/VOC2010"
 
 # Train datasets
 SBD_PATH: "/root/share/zhaoyian/datasets/SBD/dataset"

@@ -9,8 +9,7 @@
 # BEiT: https://github.com/microsoft/unilm/tree/master/beit
 # --------------------------------------------------------
 
-import json
-
+from torch.optim.lr_scheduler import _LRScheduler
 
 def param_groups_lrd(model, lr, weight_decay=0.05, no_weight_decay_list=[], layer_decay=.75):
     """
@@ -83,3 +82,25 @@ def get_layer_id_for_vit(name, num_layers):
         return int(name.split('.')[1]) + 1
     else:
         return num_layers
+
+class CustomMultiStepLR(_LRScheduler):
+    def __init__(self, optimizer, milestones, gammas, last_epoch=-1):
+        self.milestones = milestones
+        self.gammas = gammas
+        assert len(self.milestones) == len(self.gammas), "milestones and gammas must have the same length"
+        super(CustomMultiStepLR, self).__init__(optimizer, last_epoch)
+
+    def get_lr(self):
+        if self.last_epoch in self.milestones:
+            index = self.milestones.index(self.last_epoch)
+            return [base_lr * self.gammas[index] for base_lr in self.base_lrs]
+        return self.base_lrs
+
+    def step(self, epoch=None):
+        # 调用父类的step方法更新学习率
+        super(CustomMultiStepLR, self).step(epoch)
+        # 打印当前epoch和学习率
+        if epoch is None:
+            epoch = self.last_epoch + 1
+        lrs = self.get_lr()
+        print(f"Epoch {epoch}: Setting learning rate to {lrs[0]}")

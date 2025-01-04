@@ -55,19 +55,16 @@ class ISDataset(torch.utils.data.dataset.Dataset):
             mask = sample._encoded_masks.astype(np.float32)
             mask = mask.reshape([1, mask.shape[0], mask.shape[1]])
 
+        output = {
+            'images': self.to_tensor(sample.image),
+            'points': points.astype(np.float32),
+            'instances': mask,
+        }
         if sample.gra is not None:
-            output = {
-                'images': self.to_tensor(sample.image),
-                'points': points.astype(np.float32),
-                'instances': mask,
-                'gra': torch.from_numpy(np.array([sample.gra])),
-            }
-        else:
-            output = {
-                'images': self.to_tensor(sample.image),
-                'points': points.astype(np.float32),
-                'instances': mask,
-            }
+            output.update({'gra': torch.from_numpy(np.array([sample.gra]))})
+
+        if sample.prompt is not None:
+            output.update({'text': sample.prompt})
 
         if self.with_image_info:
             output['image_info'] = sample.sample_id

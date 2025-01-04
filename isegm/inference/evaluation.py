@@ -4,7 +4,7 @@ import numpy as np
 import torch
 import cv2
 from isegm.inference import utils
-from isegm.inference.clicker import Click, Clicker
+from isegm.inference.clicker import Clicker
 
 try:
     get_ipython()
@@ -12,28 +12,28 @@ try:
 except NameError:
     from tqdm import tqdm
 
-
-def evaluate_dataset(dataset, predictor, sam_type=None, oracle=False, **kwargs):
+def evaluate_dataset(dataset, predictor, graco=False, sam_type=None, oracle=False, gra=None, phrase=None,
+                    **kwargs):
     all_ious = []
     start_time = time()
+    print("Number of sample: ", len(dataset))
     for index in tqdm(range(len(dataset)), leave=False):
         sample = dataset.get_sample(index)
         for object_id in sample.objects_ids:
-            if sam_type is None:
-                sample_ious, _ = evaluate_sample(sample.image, sample.gt_mask(object_id), predictor,
-                                                sample_id=index, **kwargs)
+            if graco:
+                sample_ious, gra_idx = evaluate_sample_oracle(sample.image, sample.gt_mask(object_id), predictor,
+                                                              sample_id=index, **kwargs)
             else:
-                _, sample_ious, _ = evaluate_sample_sam(sample.image, sample.gt_mask(object_id), predictor,
-                                                sample_id=index, sam_type=sam_type, oracle=oracle, **kwargs)
+                _, sample_ious, _ = evaluate_sample(sample.image, sample.gt_mask(object_id), predictor,
+                                                    sample_id=index, sam_type=sam_type, oracle=oracle, gra=gra,
+                                                    phrase=phrase, **kwargs)
             all_ious.append(sample_ious)
     end_time = time()
     elapsed_time = end_time - start_time
     return all_ious, elapsed_time
 
-
-def evaluate_sample_sam(image, gt_mask, predictor, max_iou_thr,
-                    pred_thr=0.49, min_clicks=1, max_clicks=20,
-                    sample_id=None, sam_type=False, oracle=False, callback=None):
+def evaluate_sample(image, gt_mask, predictor, max_iou_thr, pred_thr=0.49, min_clicks=1, max_clicks=20,
+                    sample_id=None, sam_type=False, oracle=False, gra=None, phrase=None, callback=None):
     clicker = Clicker(gt_mask=gt_mask)
     pred_mask = np.zeros_like(gt_mask)
     ious_list = []
@@ -46,7 +46,8 @@ def evaluate_sample_sam(image, gt_mask, predictor, max_iou_thr,
                 if oracle:
                     ious = []
                     pred_masks = []
-                    pred_probs, _, _ = predictor.predict(point_coords, point_labels, multimask_output=True, return_logits=True)
+                    pred_probs, _, _ = predictor.predict(point_coords, point_labels, multimask_output=True,
+                                                         return_logits=True)
                     for idx in range(pred_probs.shape[0]):
                         pred_masks.append(pred_probs[idx] > predictor.model.mask_threshold)
                         ious.append(utils.get_iou(gt_mask, pred_masks[-1]))
@@ -54,14 +55,15 @@ def evaluate_sample_sam(image, gt_mask, predictor, max_iou_thr,
                     iou = ious[tgt_idx]
                     pred_mask = pred_masks[tgt_idx]
                 else:
-                    pred_probs, _, _ = predictor.predict(point_coords, point_labels, multimask_output=False, return_logits=True)
+                    pred_probs, _, _ = predictor.predict(point_coords, point_labels, multimask_output=False,
+                                                         return_logits=True)
                     pred_probs = pred_probs[0]
                     pred_mask = pred_probs > predictor.model.mask_threshold
                     iou = utils.get_iou(gt_mask, pred_mask)
-                
+
                 if callback is not None:
                     callback(image, gt_mask, pred_probs, sample_id, click_indx, clicker.clicks_list)
-                
+
                 ious_list.append(iou)
                 if iou >= max_iou_thr and click_indx + 1 >= min_clicks:
                     break
@@ -69,21 +71,9 @@ def evaluate_sample_sam(image, gt_mask, predictor, max_iou_thr,
         else:
             for click_indx in range(max_clicks):
                 clicker.make_next_click(pred_mask)
-                if oracle:
-                    ious = []
-                    pred_masks = []
-                    for gra in range(1, 11):
-                        cur_gra = round(gra * 0.1, 1)
-                        pred_probs = predictor.get_prediction(clicker, gra=cur_gra)
-                        pred_masks.append(pred_probs > pred_thr)
-                        ious.append(utils.get_iou(gt_mask, pred_masks[-1]))
-                    tgt_idx = np.argmax(np.array(ious))
-                    iou = ious[tgt_idx]
-                    pred_mask = pred_masks[tgt_idx]
-                else:
-                    pred_probs = predictor.get_prediction(clicker)
-                    pred_mask = pred_probs > pred_thr
-                    iou = utils.get_iou(gt_mask, pred_mask)
+                pred_probs = predictor.get_prediction(clicker, gra=gra, phrase=phrase)
+                pred_mask = pred_probs > pred_thr
+                iou = utils.get_iou(gt_mask, pred_mask)
 
                 if callback is not None:
                     callback(image, gt_mask, pred_probs, sample_id, click_indx, clicker.clicks_list)
@@ -93,10 +83,9 @@ def evaluate_sample_sam(image, gt_mask, predictor, max_iou_thr,
                     break
             return clicker.clicks_list, np.array(ious_list, dtype=np.float32), pred_probs
 
-
-def evaluate_sample(image, gt_mask, predictor, max_iou_thr,
-                    pred_thr=0.49, min_clicks=1, max_clicks=20,
-                    sample_id=None, callback=None):
+def evaluate_sample_oracle(image, gt_mask, predictor, max_iou_thr,
+                           pred_thr=0.49, min_clicks=1, max_clicks=20,
+                           sample_id=None, callback=None):
     clicker = Clicker(gt_mask=gt_mask)
     ious_lists = []
     click_indxs = []
@@ -115,7 +104,6 @@ def evaluate_sample(image, gt_mask, predictor, max_iou_thr,
 
                 pred_mask = pred_probs > pred_thr
                 iou = utils.get_iou(gt_mask, pred_mask)
-
                 if callback is not None:
                     callback(image, gt_mask, pred_probs, sample_id, click_indx, clicker.clicks_list)
 
@@ -133,9 +121,7 @@ def evaluate_sample(image, gt_mask, predictor, max_iou_thr,
         max_index = np.argmax([ious[0] for ious in selected_ious])
         ious = selected_ious[max_index]
         tgt_idx = tgt_idxs[max_index]
-
     return ious, tgt_idx
-
 
 def get_sam_input(clicker, reverse=True):
     clicks_list = clicker.get_clicks()

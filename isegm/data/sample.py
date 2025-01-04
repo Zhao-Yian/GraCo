@@ -6,12 +6,12 @@ from albumentations import ReplayCompose
 
 
 class DSample:
-    def __init__(self, image, encoded_masks, points=None, gra=None, objects=None,
-                 objects_ids=None, ignore_ids=None, sample_id=None, class_name=None, part_name=None):
+    def __init__(self, image, encoded_masks, points=None, gra=None, prompt=None,
+                 objects=None, objects_ids=None, ignore_ids=None, sample_id=None):
         self.image = image
+        self.target = encoded_masks
         self.sample_id = sample_id
-        self.class_name = class_name
-        self.part_name = part_name  # for part dataset
+        self.prompt = prompt
 
         if len(encoded_masks.shape) == 2:
             encoded_masks = encoded_masks[:, :, np.newaxis]
@@ -90,7 +90,7 @@ class DSample:
                 else:
                     neg_points.append((point[1], point[0]))
         return pos_points + neg_points, len(pos_points), len(points) // 2
-    
+
     def postprocess_points(self, points, pos_cnt, max_cnt):
         pos_points = [[round(point[1]), round(point[0]), 100] for point in points[:pos_cnt]]
         neg_points = [[round(point[1]), round(point[0]), 100] for point in points[pos_cnt:]]
@@ -101,7 +101,6 @@ class DSample:
         if len(neg_points) < max_cnt:
             neg_points.extend([(-1, -1, -1)] * (max_cnt - len(neg_points)))
         return np.array(pos_points + neg_points)
-        
 
     def remove_small_objects(self, min_area):
         if self._objects and not 'area' in list(self._objects.values())[0]:

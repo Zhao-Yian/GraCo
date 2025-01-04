@@ -64,12 +64,22 @@ def get_dataset(dataset_name, cfg, args):
         dataset = SBDEvaluationDataset(cfg.SBD_PATH)
     elif dataset_name == 'SBD_Train':
         dataset = SBDEvaluationDataset(cfg.SBD_PATH, split='train')
+    elif dataset_name == 'PascalVOC':
+        dataset = PascalVocDataset(cfg.PASCALVOC_PATH, split='val')
     elif dataset_name == 'PascalPart':
-        dataset = PascalPartEvaluationDataset(cfg.PASCALPART_PATH, split='val', class_name=args.class_name, part_name=args.part_name)
+        dataset = PascalPartEvaluationDataset(cfg.PASCALPART_PATH, split='val', class_name=args.class_name,
+                                              part_name=args.part_name)
     elif dataset_name == 'PartImageNet':
-        dataset = PartINDataset(cfg.PARTIMAGENET_PATH, split='val')
+        dataset = PartINEvaluationDataset(cfg.PARTIMAGENET_PATH, split='val', class_name=args.class_name,
+                                          part_name=args.part_name)
     elif dataset_name == 'SA1B':
         dataset = SA1BDataset(cfg.SA1B_PATH)
+    elif dataset_name == 'BraTS':
+        dataset = BraTSDataset(cfg.BraTS_PATH)
+    elif dataset_name == 'ssTEM':
+        dataset = ssTEMDataset(cfg.ssTEM_PATH)
+    elif dataset_name == 'OAIZIB':
+        dataset = OAIZIBDataset(cfg.OAIZIB_PATH)
     else:
         dataset = None
 

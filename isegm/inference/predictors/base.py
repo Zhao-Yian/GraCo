@@ -3,9 +3,10 @@ import torch.nn.functional as F
 import numpy as np
 from torchvision import transforms
 from isegm.inference.transforms import AddHorizontalFlip, SigmoidForPred, LimitLongestSide
+from isegm.model.modeling.clip import clip
 
 class BasePredictor(object):
-    def __init__(self, model, device, gra=None, sam_type=None,
+    def __init__(self, model, device, sam_type=None,
                  net_clicks_limit=None,
                  with_flip=False,
                  zoom_in=None,
@@ -14,8 +15,8 @@ class BasePredictor(object):
         self.with_flip = with_flip
         self.net_clicks_limit = net_clicks_limit
         self.original_image = None
+        self.image_features = None  # cache features
         self.device = device
-        self.gra=gra if gra is not None and gra > 0 else None
         self.sam_type = sam_type
         self.zoom_in = zoom_in
         self.prev_prediction = None
@@ -49,7 +50,7 @@ class BasePredictor(object):
             self.original_image = self.original_image.unsqueeze(0)
         self.prev_prediction = torch.zeros_like(self.original_image[:, :1, :, :])
 
-    def get_prediction(self, clicker, prev_mask=None, gra=None):
+    def get_prediction(self, clicker, prev_mask=None, gra=None, phrase=None):
         clicks_list = clicker.get_clicks()
 
         if self.click_models is not None:
@@ -66,42 +67,43 @@ class BasePredictor(object):
         image_nd, clicks_lists, is_image_changed = self.apply_transforms(
             input_image, [clicks_list]
         )
-        pred_logits = self._get_prediction(image_nd, clicks_lists, is_image_changed, gra=gra)
+        pred_logits = self._get_prediction(image_nd, clicks_lists, is_image_changed, gra=gra, phrase=phrase)
 
         prediction = F.interpolate(pred_logits, mode='bilinear', align_corners=True,
                                    size=image_nd.size()[2:])
-        
         for t in reversed(self.transforms):
             prediction = t.inv_transform(prediction)
 
         if self.zoom_in is not None and self.zoom_in.check_possible_recalculation():
             return self.get_prediction(clicker)
-
+        
         self.prev_prediction = prediction
         return prediction.cpu().numpy()[0, 0]
 
-    def _get_prediction(self, image_nd, clicks_lists, is_image_changed, gra=None):
-        points_nd = self.get_points_nd(clicks_lists)
-        if gra is None:
-            gra = self.gra
-        if self.sam_type == 'SAM':
-            batched_input = self.get_sam_batched_input(image_nd, points_nd)
-            batched_output = self.net(batched_input, multimask_output=False, return_logits=True)
-            return torch.cat([batch['masks'] for batch in batched_output], dim=0)
+    def _get_prediction(self, image_nd, clicks_lists=None, is_image_changed=None, gra=None, phrase=None):
+        print(gra, phrase)
+        if clicks_lists is not None:
+            points_nd = self.get_points_nd(clicks_lists)
+            if self.sam_type == 'SAM':
+                batched_input = self.get_sam_batched_input(image_nd, points_nd)
+                batched_output = self.net(batched_input, multimask_output=False, return_logits=True)
+                return torch.cat([batch['masks'] for batch in batched_output], dim=0)
 
         if gra is not None:
-            return self.net(image_nd, points_nd, torch.Tensor([gra]).to(self.device))['instances']
-        else:
-            return self.net(image_nd, points_nd)['instances']
+            gra = torch.Tensor([gra]).unsqueeze(0).to(self.device)
 
+        if phrase is not None:
+            if isinstance(phrase, str):
+                phrase = clip.tokenize(phrase).to(self.device)  # for clip
+            else:
+                phrase = phrase.to(self.device)  # for clip
+        return self.net(image_nd, points_nd, gra, phrase)['instances']
 
     def _batch_infer(self, batch_image_tensor, batch_clickers, prev_mask=None):
         if prev_mask is None:
             prev_mask = self.prev_prediction
-        
         if hasattr(self.net, 'with_prev_mask') and self.net.with_prev_mask:
             input_image = torch.cat((batch_image_tensor, prev_mask), dim=1)
-        
         clicks_lists = [clicker.get_clicks() for clicker in batch_clickers]
         image_nd, clicks_lists, is_image_changed = self.apply_transforms(
             input_image, clicks_lists

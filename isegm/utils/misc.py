@@ -11,10 +11,18 @@ def get_dims_with_exclusion(dim, exclude=None):
 
     return dims
 
-def part_state_dict(state_dict):
-    return {k: state_dict[k] for k in state_dict if ('lora_' in k) or ('gra_embed' in k)}
+def part_state_dict(state_dict, white_list=None):
+    assert white_list is not None
+    white_list.append("lora_")
+    save_state_dict = {}
+    for k in state_dict:
+        for prefix in white_list:
+            if prefix in k:
+                save_state_dict[k] = state_dict[k]
 
-def save_checkpoint(net, checkpoints_path, epoch=None, prefix='', verbose=True, multi_gpu=False, save_lora=False):
+    return save_state_dict
+
+def save_checkpoint(net, checkpoints_path, epoch=None, prefix='', verbose=True, multi_gpu=False, save_lora=False, white_list=None):
     if epoch is None:
         checkpoint_name = 'last_checkpoint.pth'
     else:
@@ -33,7 +41,7 @@ def save_checkpoint(net, checkpoints_path, epoch=None, prefix='', verbose=True, 
     net = net.module if multi_gpu else net
 
     if save_lora:
-        torch.save({'state_dict': part_state_dict(net.state_dict()),
+        torch.save({'state_dict': part_state_dict(net.state_dict(), white_list),
                     'config': net._config}, str(checkpoint_path))
     else:
         torch.save({'state_dict': net.state_dict(),
