@@ -55,7 +55,7 @@ class PartINEvaluationDataset(ISDataset):
             pkl_path = self.dataset_path / f'{self.dataset_split}_images_and_ids_list.pkl'
 
         images_and_ids_list = []
-        # for path in pkl_path:
+
         if pkl_path.exists():
             with open(str(pkl_path), 'rb') as fp:
                 images_and_ids_list.extend(pkl.load(fp))
