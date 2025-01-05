@@ -73,7 +73,7 @@ pip install -r requirements.txt
 python demo.py --checkpoint path/to/weights/sbd_vit_base.pth --lora_checkpoint path/to/GraCo_base_lora.pth --cpu
 
 # running on gpu
-python demo.py --checkpoint path/to/weights/sbd_vit_base.pth --lora_checkpoint path/to/GraCo_base_lora.pth --gpu
+python demo.py --checkpoint path/to/weights/sbd_vit_base.pth --lora_checkpoint path/to/GraCo_base_lora.pth --gpu 0
 
 ```
 

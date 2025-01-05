@@ -81,7 +81,6 @@ class BasePredictor(object):
         return prediction.cpu().numpy()[0, 0]
 
     def _get_prediction(self, image_nd, clicks_lists=None, is_image_changed=None, gra=None, phrase=None):
-        print(gra, phrase)
         if clicks_lists is not None:
             points_nd = self.get_points_nd(clicks_lists)
             if self.sam_type == 'SAM':
