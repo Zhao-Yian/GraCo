@@ -34,6 +34,8 @@ The original AGG is split into the Fine-grained Mask Generator (FMG) and the Mas
 
 ---
 
+![](./assets/demo.gif)
+
 ## 💡 Introduction
 
 Current IS pipelines fall into two categories: single-granularity output and multi-granularity output. The latter aims to alleviate the spatial ambiguity present in the former.

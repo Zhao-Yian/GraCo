@@ -56,10 +56,6 @@ class InteractiveController:
         click = clicker.Click(is_positive=is_positive, coords=(y, x))
         self.clicker.add_click(click)
         pred = self.predictor.get_prediction(self.clicker, prev_mask=self._init_mask, gra=self.granularity, phrase=self.phrase)
-        if self._init_mask is not None and len(self.clicker) == 1:
-            pred = self.predictor.get_prediction(self.clicker, prev_mask=self._init_mask, gra=self.granularity, phrase=self.phrase)
-
-        torch.cuda.empty_cache()
 
         if self.probs_history:
             self.probs_history.append((self.probs_history[-1][0], pred))

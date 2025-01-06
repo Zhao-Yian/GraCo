@@ -87,7 +87,6 @@ class BasePredictor(object):
                 batched_input = self.get_sam_batched_input(image_nd, points_nd)
                 batched_output = self.net(batched_input, multimask_output=False, return_logits=True)
                 return torch.cat([batch['masks'] for batch in batched_output], dim=0)
-
         if gra is not None:
             gra = torch.Tensor([gra]).unsqueeze(0).to(self.device)
 
