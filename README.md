@@ -3,7 +3,7 @@
 </div>
 <p align="center">
     <a href="https://zhao-yian.github.io/GraCo"><img alt="Static Badge" src="https://img.shields.io/badge/Project_page-openproject.svg?logo=openproject&color=%230770B8"></a>
-    <a href="">
+    <a href="https://arxiv.org/abs/2405.00587">
     <img alt="Static Badge" src="https://img.shields.io/badge/Paper-arXiv.svg?logo=arxiv&labelColor=%23B31B1B&color=%23B31B1B">
     </a>
     <a href="https://youtu.be/QE8Mi0k2nKg?si=yJXbYAzTG1qHF_uK">
